@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E4E8C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>NEO_Condomínio</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+:root{--bg:#F4F5F7;--card:#FFFFFF;--fg:#16212B;--muted:#5B6775;--line:#E3E6EA;--line2:#C9CFD6;--brand:#1E4E8C;--brand-soft:#E8EEF7;--ok:#0F766E;--ok-soft:#D8F0EC;--warn:#D97706;--warn-soft:#FDEBD3;--alta:#9A2C12;--alta-soft:#FBE3DC;--thumb:#DDE3EA;--wa:#1F8F5F;--dark:#16212B}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.4;display:flex;flex-direction:column;overflow:hidden}
+[hidden]{display:none!important}
+button{font-family:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+input,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1{margin:0;font-size:22px;font-weight:700}
+.hdr{background:var(--card);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;flex-direction:column;gap:2px;flex:none}
+.hdr.dark{background:var(--dark);color:#fff}
+.hdr.dark .eyebrow,.hdr.dark .sub{color:#9AA6B2}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;user-select:none;-webkit-user-select:none}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge{font-size:12px;font-weight:600;color:#fff;background:var(--brand);border-radius:999px;padding:3px 10px}
+.sub{font-size:13px;color:var(--muted)}
+.back{font-size:13px;font-weight:600;color:var(--brand);text-decoration:none;background:none;border:0;padding:0;text-align:left}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.view{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;font-weight:600;color:var(--muted)}
+.box{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:0 6px 0 12px;min-height:50px}
+.box.ta{align-items:flex-start;padding-top:6px;padding-bottom:6px}
+.box input,.box textarea{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:16px;color:var(--fg);padding:8px 0}
+.box textarea{resize:none;min-height:80px;line-height:1.4}
+.mic{width:42px;height:42px;flex:none;border:0;border-radius:10px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center}
+.mic.on{background:var(--alta);color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big{min-height:112px;border:0;border-radius:16px;background:var(--brand);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;position:relative;overflow:hidden}
+.big.ok{background:var(--ok)}
+.big.line{background:var(--card);color:var(--brand);border:2px solid var(--brand)}
+.big input[type=file]{position:absolute;inset:0;opacity:0;font-size:0;cursor:pointer}
+.banner{display:flex;align-items:center;gap:10px;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600}
+.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.banner.warn{background:var(--warn-soft);color:#7A3E00}
+.hint{font-size:12px;color:var(--muted);line-height:1.4}
+.card{background:var(--card);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);min-width:0}
+.item{background:var(--card);border-radius:12px;padding:12px;display:flex;gap:12px;border:1px solid var(--line);border-left:4px solid var(--warn);text-decoration:none;color:inherit;width:100%;text-align:left;min-width:0;font:inherit;align-items:flex-start}
+.item .col{align-items:flex-start}
+.item.tar{border-left-color:var(--ok)} .item.com{border-left-color:var(--brand)} .item.gas,.item.arq{border-left-color:var(--line2)}
+.thumb{width:64px;height:64px;border-radius:8px;background:var(--thumb);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;overflow:hidden;position:relative}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .tag{position:absolute;bottom:2px;right:4px;font-size:10px;font-weight:700;color:#fff;text-shadow:0 0 3px #000}
+.col{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.title{font-size:15px;font-weight:600;overflow-wrap:anywhere}
+.title.empty{color:var(--muted);font-weight:500}
+.meta{font-size:12px;color:var(--muted)}
+.state{font-size:12px;font-weight:600;color:var(--warn)} .state.tar{color:var(--ok)} .state.com{color:var(--brand)} .state.gas,.state.arq{color:var(--muted)}
+.section{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:4px}
+.evi{display:flex;gap:8px;flex-wrap:wrap}
+.evi .thumb{width:76px;height:76px}
+.evi .add{width:76px;height:76px;border:2px dashed var(--brand);border-radius:8px;background:var(--card);color:var(--brand);font-size:26px;font-weight:600;position:relative}
+.evi .add input{position:absolute;inset:0;opacity:0;font-size:0}
+.def{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.def button{min-height:62px;border:1px solid var(--line2);border-radius:12px;background:var(--card);color:var(--fg);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:8px 12px;text-align:left;position:relative}
+.def button b{font-size:15px} .def button span{font-size:11px;color:var(--muted)}
+.def button.sug{border:2px solid var(--ok);background:var(--ok-soft)} .def button.sug b{color:var(--ok)}
+.def button.sel{border:2px solid var(--brand);background:var(--brand-soft)}
+.def .tsug{position:absolute;top:5px;right:8px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--ok)}
+.btn{min-height:46px;border-radius:12px;font-weight:600;font-size:15px;border:0;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0 12px}
+.btn.pri{background:var(--brand);color:#fff} .btn.ok{background:var(--ok);color:#fff} .btn.wa{background:var(--wa);color:#fff}
+.btn.sec{background:var(--card);color:var(--fg);border:1px solid var(--line2)} .btn.okline{background:var(--card);color:var(--ok);border:1px solid var(--ok)}
+.btns{display:flex;gap:8px} .btns>*{flex:1}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1;text-align:center;font-size:12px;font-weight:600;padding:8px 0;border-radius:8px;background:var(--card);color:var(--muted);border:1px solid var(--line);min-height:36px}
+.tabs button[aria-selected=true]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip{font-size:12px;font-weight:600;border-radius:6px;padding:3px 8px;white-space:nowrap}
+.chip.Alta{color:var(--alta);background:var(--alta-soft)} .chip.Média{color:#7A3E00;background:var(--warn-soft)} .chip.Baixa{color:var(--muted);background:var(--bg);border:1px solid var(--line)} .chip.and{color:var(--ok);background:var(--ok-soft)}
+.info{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted)}
+.day{width:52px;flex:none;text-align:center;display:flex;flex-direction:column;border-radius:8px;background:var(--brand-soft);padding:6px 0}
+.day b{font-size:20px;color:var(--brand)} .day span{font-size:11px;font-weight:600;color:var(--brand)}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:24px 8px}
+nav.bottom{background:var(--card);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;flex:none}
+nav.bottom button{min-height:44px;border-radius:8px;border:0;background:transparent;color:var(--muted);font-weight:600;font-size:11px}
+nav.bottom button[aria-current=page]{background:var(--brand-soft);color:var(--brand)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--dark);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;z-index:30;max-width:90vw;text-align:center}
+.overlay{position:fixed;inset:0;background:#000;z-index:40;display:flex;flex-direction:column}
+.overlay video{flex:1;width:100%;object-fit:cover;background:#000}
+.overlay .bar{display:flex;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:#000}
+.overlay .bar button{flex:1;min-height:52px;border:0;border-radius:12px;font-weight:700;font-size:16px}
+.overlay .rec{color:#fff;font-weight:700;text-align:center;padding:8px;font-size:14px}
+.status{font-size:12px;color:var(--muted);text-align:center}
+.diag{font-size:11px;color:var(--alta);text-align:left}
+input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:10px;font-size:14px;background:var(--card);color:var(--fg)}
+</style>
+</head>
+<body>
+<header class="hdr" id="hdr">
+  <div class="eyebrow" id="eyebrow">NEO_Condomínio · v0</div>
+  <div class="hrow"><h1 id="vTitle">Capturar</h1><span class="badge" id="vBadge" hidden></span></div>
+  <div class="sub" id="vSub">Viu, pegou o celular, capturou. O resto é depois.</div>
+  <div class="diag" id="diag" hidden></div>
+</header>
+
+<main id="main">
+  <!-- 1 CAPTURAR -->
+  <section class="view" id="v-capturar">
+    <div class="field"><label for="cTitulo">Título da nota (opcional)</label>
+      <div class="box"><input id="cTitulo" type="text" placeholder="Fale ou digite…" autocomplete="off"><button type="button" class="mic" data-mic="cTitulo" aria-label="Falar o título"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div>
+    <div class="grid2">
+      <button type="button" class="big" id="bCam"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Câmera</span></button>
+      <button type="button" class="big" id="bVid"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg><span>Filmadora</span></button>
+      <button type="button" class="big ok" id="bVoz"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="bVozLbl">Voz</span></button>
+      <label class="big line" id="bArq"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Arquivos</span><input type="file" id="fArq" accept="image/*,video/*,audio/*,.opus,.ogg,.m4a,.aac,.mp3,.mp4" multiple aria-label="Escolher arquivos"></label>
+    </div>
+    <div class="field"><label for="cTexto">Texto (opcional)</label>
+      <div class="box ta"><textarea id="cTexto" placeholder="Fale ou digite o que viu…"></textarea><button type="button" class="mic" data-mic="cTexto" aria-label="Falar o texto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div>
+    <div class="banner ok" id="cBanner" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span id="cBannerTxt">Gravado</span></div>
+    <div class="btns"><button type="button" class="btn sec" id="cSalvarTexto">Salvar só o texto</button><button type="button" class="btn pri" id="cNova">Nova nota</button></div>
+    <div class="hint" id="cHint">Cada captura grava sozinha: data, hora, coordenadas e a evidência. Capturas seguidas (até 2 min) entram na mesma nota; "Nova nota" fecha a atual.</div>
+    <input type="file" id="fCamFallback" accept="image/*" capture="environment" hidden>
+    <input type="file" id="fVidFallback" accept="video/*" capture="environment" hidden>
+    <input type="file" id="fVozFallback" accept="audio/*" capture hidden>
+  </section>
+
+  <!-- 2 NOTAS -->
+  <section class="view" id="v-notas" hidden><div id="notasLista"></div></section>
+
+  <!-- 3 NOTA DETALHE -->
+  <section class="view" id="v-nota" hidden>
+    <div class="evi" id="nEvi"></div>
+    <div class="field"><label for="nTitulo">Título</label>
+      <div class="box"><input id="nTitulo" type="text" placeholder="Fale ou digite…" autocomplete="off"><button type="button" class="mic" data-mic="nTitulo" aria-label="Falar o título"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div>
+    <div class="field"><label for="nTexto">Texto · achados</label>
+      <div class="box ta"><textarea id="nTexto" placeholder="Fale ou digite…"></textarea><button type="button" class="mic" data-mic="nTexto" aria-label="Falar o texto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div>
+    <div id="nExtra"></div>
+    <div class="section">Definir como</div>
+    <div class="def" id="nDef"></div>
+    <div class="hint" id="nHint"></div>
+    <div class="btns"><button type="button" class="btn sec" id="nArquivar">Arquivar</button><button type="button" class="btn pri" id="nSalvar">Salvar</button></div>
+  </section>
+
+  <!-- 4 TAREFAS -->
+  <section class="view" id="v-tarefas" hidden>
+    <div class="tabs" id="tTabs"><button type="button" data-st="A fazer" aria-selected="true">A fazer</button><button type="button" data-st="Em andamento" aria-selected="false">Em andamento</button><button type="button" data-st="Concluída" aria-selected="false">Concluídas</button></div>
+    <div id="tLista"></div>
+  </section>
+
+  <!-- 5 COMPROMISSOS -->
+  <section class="view" id="v-compromissos" hidden><div id="aLista"></div></section>
+
+  <!-- 6 RETAGUARDA -->
+  <section class="view" id="v-retaguarda" hidden>
+    <div class="card"><div class="section">App → planilha</div><div id="rPend">—</div><button type="button" class="btn ok" id="rEnviar">Enviar para a planilha</button><div class="status" id="rEnvStatus"></div></div>
+    <div class="card"><div class="section">Planilha → app (cadastros)</div><div class="info" id="rCad"></div><button type="button" class="btn sec" id="rCadastros">Atualizar cadastros</button></div>
+    <div class="card"><div class="section">WhatsApp em lote</div><div class="hint">Exporte a conversa do grupo (sem mídia) e escolha o .txt. Uma nota por mensagem, sem duplicar.</div><label class="btn sec" style="position:relative">Importar conversa (.txt)<input type="file" id="rTxt" accept=".txt,text/plain" style="position:absolute;inset:0;opacity:0;font-size:0"></label><div class="status" id="rImpStatus"></div></div>
+    <div class="card"><div class="section">Reserva</div><div class="btns"><button type="button" class="btn sec" id="rCsvNotas">CSV Notas</button><button type="button" class="btn sec" id="rCsvTarefas">CSV Tarefas</button></div></div>
+    <div class="card"><div class="section">Conexão</div><label for="rApi">URL do Apps Script (termina em /exec)</label><input id="rApi" class="plain" type="url" placeholder="https://script.google.com/macros/s/…/exec"><div class="btns"><button type="button" class="btn sec" id="rApiSalvar">Salvar URL</button><button type="button" class="btn sec" id="rApiTestar">Testar</button></div><div class="status" id="rApiStatus"></div></div>
+  </section>
+</main>
+
+<nav class="bottom" aria-label="Seções">
+  <button type="button" data-view="capturar" aria-current="page">Capturar</button>
+  <button type="button" data-view="notas">Notas</button>
+  <button type="button" data-view="tarefas">Tarefas</button>
+  <button type="button" data-view="compromissos">Compromissos</button>
+</nav>
+
+<div class="overlay" id="ov" hidden>
+  <div class="rec" id="ovRec"></div>
+  <video id="ovVideo" autoplay playsinline muted></video>
+  <div class="bar"><button type="button" id="ovCancel" style="background:#333;color:#fff">Cancelar</button><button type="button" id="ovShot" style="background:#fff;color:#000">Tirar</button></div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
