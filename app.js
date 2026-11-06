@@ -95,22 +95,35 @@ function banner(t){$('#cBannerTxt').textContent=t;$('#cBanner').hidden=false;}
 $('#cNova').addEventListener('click',()=>{notaAbertaId=null;$('#cTitulo').value='';$('#cTexto').value='';$('#cBanner').hidden=true;toast('Pronto para a próxima nota.');});
 $('#cSalvarTexto').addEventListener('click',async()=>{if(!$('#cTitulo').value.trim()&&!$('#cTexto').value.trim()){toast('Escreva ou fale algo primeiro.');return;}const n=await notaParaCaptura();if(!n.tipo||n.tipo==='misto'&&!n.midia)n.tipo='texto';await put('notas',n);await carregar();banner('Gravado · '+fmtD(n.recebido_em)+(n.gps?' · GPS ok':' · sem GPS')+' · texto');render();});
 // Câmera: visor próprio (getUserMedia); se recusar, seletor do celular
-let stream=null,mediaRec=null,recChunks=[],recTimer=null,ovMode='';
+let stream=null,mediaRec=null,recChunks=[],recTimer=null,ovMode='',fotoBlob=null,reciboOn=false,track=null;
 async function abrirVisor(modo){
-  ovMode=modo;const ov=$('#ov'),vd=$('#ovVideo');
-  try{stream=await navigator.mediaDevices.getUserMedia(modo==='foto'?{video:{facingMode:{ideal:'environment'},width:{ideal:1600}},audio:false}:{video:{facingMode:{ideal:'environment'}},audio:true});}
+  ovMode=modo;const ov=$('#ov'),vd=$('#ovVideo');fotoBlob=null;
+  try{stream=await navigator.mediaDevices.getUserMedia(modo==='foto'?{video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false}:{video:{facingMode:{ideal:'environment'}},audio:true});}
   catch(err){diag('');return false;}
-  vd.srcObject=stream;vd.muted=true;ov.hidden=false;$('#ovRec').textContent=modo==='foto'?'Enquadre e toque em Tirar':'Toque em Gravar (até 60 s)';$('#ovShot').textContent=modo==='foto'?'Tirar':'Gravar';return true;
+  track=stream.getVideoTracks()[0];vd.srcObject=stream;vd.muted=true;vd.hidden=false;$('#ovPrev').hidden=true;$('#ovBarLive').hidden=false;$('#ovBarPrev').hidden=true;ov.hidden=false;
+  $('#ovRec').textContent=modo==='foto'?'Enquadre e toque em Tirar':'Toque em Gravar (até 60 s)';$('#ovShot').textContent=modo==='foto'?'Tirar':'Gravar';
+  // lanterna e zoom: só se a câmera oferecer
+  const caps=track.getCapabilities?track.getCapabilities():{};
+  $('#ovTorch').hidden=!caps.torch;$('#ovTorch').setAttribute('aria-pressed','false');
+  const z=$('#ovZoom');if(caps.zoom){z.min=caps.zoom.min||1;z.max=caps.zoom.max||1;z.step=caps.zoom.step||0.1;z.value=(track.getSettings().zoom)||caps.zoom.min||1;$('#ovZoomWrap').hidden=false;}else $('#ovZoomWrap').hidden=true;
+  $('#ovRecibo').hidden=modo!=='foto';vd.classList.toggle('recibo',reciboOn&&modo==='foto');$('#ovRecibo').setAttribute('aria-pressed',String(reciboOn));
+  return true;
 }
-function fecharVisor(){if(recTimer){clearInterval(recTimer);recTimer=null;}if(mediaRec&&mediaRec.state!=='inactive'){try{mediaRec.stop();}catch(_){}}mediaRec=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}$('#ovVideo').srcObject=null;$('#ov').hidden=true;}
+function fecharVisor(){if(recTimer){clearInterval(recTimer);recTimer=null;}if(mediaRec&&mediaRec.state!=='inactive'){try{mediaRec.stop();}catch(_){}}mediaRec=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}track=null;$('#ovVideo').srcObject=null;$('#ov').hidden=true;fotoBlob=null;}
 $('#ovCancel').addEventListener('click',fecharVisor);
+$('#ovTorch').addEventListener('click',async()=>{if(!track)return;const on=$('#ovTorch').getAttribute('aria-pressed')!=='true';try{await track.applyConstraints({advanced:[{torch:on}]});$('#ovTorch').setAttribute('aria-pressed',String(on));}catch(e){toast('Lanterna não disponível nesta câmera.');}});
+$('#ovZoom').addEventListener('input',async e=>{if(!track)return;try{await track.applyConstraints({advanced:[{zoom:parseFloat(e.target.value)}]});}catch(_){}});
+$('#ovRecibo').addEventListener('click',()=>{reciboOn=!reciboOn;$('#ovRecibo').setAttribute('aria-pressed',String(reciboOn));$('#ovVideo').classList.toggle('recibo',reciboOn);toast(reciboOn?'Modo Recibo: preto e branco, alto contraste.':'Modo normal.');});
+function tirarFoto(){const vd=$('#ovVideo');const cv=document.createElement('canvas');cv.width=vd.videoWidth||1280;cv.height=vd.videoHeight||720;const ctx=cv.getContext('2d');if(reciboOn)ctx.filter='grayscale(1) contrast(1.6) brightness(1.1)';ctx.drawImage(vd,0,0);return new Promise(r=>cv.toBlob(r,'image/jpeg',0.88));}
 $('#ovShot').addEventListener('click',async()=>{
-  if(ovMode==='foto'){const vd=$('#ovVideo');const cv=document.createElement('canvas');cv.width=vd.videoWidth||1280;cv.height=vd.videoHeight||720;cv.getContext('2d').drawImage(vd,0,0);const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.85));fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'foto','foto_'+Date.now()+'.jpg');render();return;}
+  if(ovMode==='foto'){fotoBlob=await tirarFoto();const img=$('#ovPrev');img.src=URL.createObjectURL(fotoBlob);$('#ovVideo').hidden=true;img.hidden=false;$('#ovBarLive').hidden=true;$('#ovBarPrev').hidden=false;$('#ovRec').textContent='Ficou boa? OK grava; Repetir tira outra.';return;}
   if(!mediaRec){const mime=['video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';recChunks=[];mediaRec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);mediaRec.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
-    mediaRec.onstop=async()=>{const blob=new Blob(recChunks,{type:mediaRec.mimeType||mime||'video/webm'});const dur=Math.round((Date.now()-ini)/1000);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'video','video_'+Date.now()+(/mp4/.test(blob.type)?'.mp4':'.webm'),{duracao_s:dur});render();};
+    mediaRec.onstop=async()=>{const blob=new Blob(recChunks,{type:mediaRec.mimeType||mime||'video/webm'});const dur=Math.round((Date.now()-ini)/1000);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'video','video_'+Date.now()+(/mp4/.test(blob.type)?'.mp4':'.webm'),{duracao_s:dur});toast('Vídeo gravado ✓ ('+dur+' s)');render();};
     const ini=Date.now();mediaRec.start(1000);$('#ovShot').textContent='Parar';let s=0;recTimer=setInterval(()=>{s++;$('#ovRec').textContent='Gravando · '+s+' s';if(s>=60)$('#ovShot').click();},1000);return;}
   mediaRec.stop();
 });
+$('#ovRetry').addEventListener('click',()=>{const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);img.hidden=true;$('#ovVideo').hidden=false;$('#ovBarPrev').hidden=true;$('#ovBarLive').hidden=false;$('#ovRec').textContent='Enquadre e toque em Tirar';fotoBlob=null;});
+$('#ovOk').addEventListener('click',async()=>{const blob=fotoBlob;if(!blob)return;const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'foto','foto_'+Date.now()+'.jpg');toast('Foto gravada ✓'+(n.gps?' · GPS ok':''));render();});
 $('#bCam').addEventListener('click',async()=>{if(!(await abrirVisor('foto')))$('#fCamFallback').click();});
 $('#bVid').addEventListener('click',async()=>{if(!(await abrirVisor('video')))$('#fVidFallback').click();});
 // Voz: grava áudio + transcreve ao vivo no Texto
