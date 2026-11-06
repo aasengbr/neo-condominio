@@ -1,5 +1,5 @@
 /* NEO_Condomínio — service worker: cache offline + recebimento de Compartilhar (Web Share Target) */
-const CACHE = 'neo-v0-3';
+const CACHE = 'neo-v0-4';
 const ARQUIVOS = ['./', './index.html', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

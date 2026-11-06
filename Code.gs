@@ -9,14 +9,15 @@
  *   POST {acao:'midia', nome, tipo, base64}  → grava arquivo em Drive › NEO_Condominio › Midia, devolve URL
  */
 var ABAS = {
-  Notas:        ['id','recebido_em','origem','remetente','tipo','titulo','texto','midia','gps','valor','fornecedor','rota','categoria','subcategoria','status','destino_id','obs'],
+  Notas:        ['id','recebido_em','origem','remetente','tipo','titulo','texto','midia','gps','valor','fornecedor','rota','categoria','subcategoria','status','destino_id','obs','centro_resultado'],
   Midias:       ['id','nota_id','tipo','arquivo','url_drive','duracao_s','tamanho_kb','transcricao'],
-  Tarefas:      ['id','nota_id','titulo','descricao','responsavel','fornecedor','prioridade','status','criada_em','prazo','concluida_em','evidencias','obs'],
-  Agenda:       ['id','nota_id','titulo','tipo','inicio','fim','local','participantes','fornecedor','status','obs'],
-  Financeiro:   ['id','nota_id','data','tipo','descricao','categoria','subcategoria','fornecedor','valor','forma_pagamento','comprovante','status','obs'],
+  Tarefas:      ['id','nota_id','titulo','descricao','responsavel','fornecedor','prioridade','status','criada_em','prazo','concluida_em','evidencias','obs','categoria','subcategoria','centro_resultado'],
+  Agenda:       ['id','nota_id','titulo','tipo','inicio','fim','local','participantes','fornecedor','status','obs','centro_resultado'],
+  Financeiro:   ['id','nota_id','data','tipo','descricao','categoria','subcategoria','fornecedor','valor','forma_pagamento','comprovante','status','obs','centro_resultado'],
   Moradores:    ['unidade','andar','nome','telefone','email','perfil','obs'],
   Fornecedores: ['id','nome','servico','telefone_whatsapp','pix','email','categoria','obs'],
-  Categorias:   ['categoria','subcategoria','tipo','ativa']
+  Categorias:   ['categoria','subcategoria','tipo','ativa'],
+  Centros:      ['nome','descricao','ativo']
 };
 var PASTA_MIDIA = 'Midia';
 
@@ -38,7 +39,7 @@ function lerAba(nome){
 function doGet(e){
   var acao=(e&&e.parameter&&e.parameter.acao)||'';
   try{
-    if(acao==='cadastros') return json({ok:true, categorias:lerAba('Categorias'), fornecedores:lerAba('Fornecedores'), moradores:lerAba('Moradores')});
+    if(acao==='cadastros') return json({ok:true, categorias:lerAba('Categorias'), fornecedores:lerAba('Fornecedores'), moradores:lerAba('Moradores'), centros:lerAba('Centros')});
     if(acao==='tarefas')   return json({ok:true, tarefas:lerAba('Tarefas')});
     if(acao==='notas')     return json({ok:true, notas:lerAba('Notas')});
     return json({ok:true, servico:'NEO_Condominio', acoes:['cadastros','tarefas','notas']});
