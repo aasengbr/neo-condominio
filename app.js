@@ -195,6 +195,8 @@ function renderNota(){
   det.querySelector('#nCat').addEventListener('change',e=>{const sb=det.querySelector('#nSub');sb.innerHTML=opts(CATS[e.target.value]||['Outro'],'');});
   $('#nHint').textContent='Sugerido: '+sg.rota+' · '+sg.categoria+' › '+sg.subcategoria+'. Um toque confirma. Detalhar é opcional.';
   $('#nSalvar').textContent=n.status==='Capturada'?'Salvar e definir':'Salvar';$('#nArquivar').hidden=n.status==='Arquivada';
+  let sh=$('#nShare');if(!sh){sh=document.createElement('div');sh.id='nShare';sh.className='btns';$('#nHint').after(sh);}sh.innerHTML='';
+  sh.appendChild(btnCompartilhar(n.titulo||'Nota',('*NEO_Condomínio — Nota*\n'+(n.titulo||'')+'\n'+(n.texto||'')+'\n'+fmtD(n.recebido_em)+(n.gps?'\nGPS: https://maps.google.com/?q='+n.gps:'')).trim(),midiasDe(n)));
 }
 function abrirMidia(m){if(!m.blob&&!m.url_drive)return;const url=m.blob?URL.createObjectURL(m.blob):m.url_drive;const ov=document.createElement('div');ov.className='overlay';ov.style.background='#000';let inner;if(m.tipo==='foto'){inner=document.createElement('img');inner.src=url;inner.style.cssText='flex:1;object-fit:contain;width:100%;min-height:0';}else{inner=document.createElement(m.tipo==='video'?'video':'audio');inner.src=url;inner.controls=true;inner.autoplay=true;inner.playsInline=true;inner.style.cssText=m.tipo==='video'?'flex:1;width:100%;min-height:0':'margin:auto;width:90%';}
   const bar=document.createElement('div');bar.className='bar';const b=document.createElement('button');b.type='button';b.textContent='Fechar';b.style.cssText='background:#fff;color:#000';b.addEventListener('click',()=>{ov.remove();if(m.blob)URL.revokeObjectURL(url);});bar.appendChild(b);ov.append(inner,bar);document.body.appendChild(ov);}
@@ -230,6 +232,14 @@ async function arquivarDestino(n){if(!n.destino_id)return;const s=n.rota==='Tare
 /* ---------- TAREFAS ---------- */
 $$('#tTabs button').forEach(b=>b.addEventListener('click',()=>{tTab=b.dataset.st;render();}));
 function resumoWhats(t){const l=['*NEO_Condomínio — Ocorrência*',t.titulo,'','Situação: '+(t.status==='A fazer'?'Aberta':t.status)+' · prioridade '+t.prioridade];if(t.categoria)l.push('Tipo: '+t.categoria+(t.subcategoria&&t.subcategoria!=='Outro'?' › '+t.subcategoria:''));if(t.fornecedor)l.push('Fornecedor: '+t.fornecedor);if(t.prazo)l.push('Prazo: '+t.prazo);l.push('Aberta em: '+fmtD(t.criada_em));if(t.status==='Concluída'&&t.concluida_em)l.push('Concluída em: '+fmtD(t.concluida_em));return l.join('\n');}
+async function compartilhar(titulo,texto,mids){
+  const files=[];for(const m of (mids||[])){if(m&&m.blob){const ext=/jpeg/.test(m.blob.type)?'.jpg':/png/.test(m.blob.type)?'.png':/mp4/.test(m.blob.type)?(m.tipo==='audio'?'.m4a':'.mp4'):/webm/.test(m.blob.type)?'.webm':/ogg/.test(m.blob.type)?'.ogg':'';files.push(new File([m.blob],(m.arquivo||m.id).replace(/\.[a-z0-9]+$/i,'')+ext,{type:m.blob.type}));}}
+  const dados={title:titulo,text:texto};if(files.length)dados.files=files;
+  if(navigator.share&&(!files.length||(navigator.canShare&&navigator.canShare({files})))){try{await navigator.share(dados);return true;}catch(e){if(e&&e.name==='AbortError')return false;}}
+  if(files.length&&navigator.share){try{await navigator.share({title:titulo,text:texto});toast('Este navegador não compartilha arquivos; foi só o texto.');return true;}catch(e){if(e&&e.name==='AbortError')return false;}}
+  window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');return true;
+}
+function btnCompartilhar(titulo,texto,mids){const b=document.createElement('button');b.type='button';b.className='btn wa';b.textContent=(mids&&mids.length)?'WhatsApp + mídia':'Enviar no WhatsApp';b.addEventListener('click',()=>compartilhar(titulo,texto,mids));return b;}
 function waLink(txt){const a=document.createElement('a');a.className='btn wa';a.href='https://wa.me/?text='+encodeURIComponent(txt);a.target='_blank';a.rel='noopener';a.textContent='Enviar no WhatsApp';return a;}
 function renderTarefas(){
   const counts={'A fazer':0,'Em andamento':0,'Concluída':0};tarefas.forEach(t=>{if(counts[t.status]!=null)counts[t.status]++;});
@@ -246,7 +256,7 @@ function renderTarefas(){
     const b=document.createElement('div');b.className='btns';
     const st=t.status==='A fazer'?['Iniciar →','Em andamento','pri']:t.status==='Em andamento'?['Concluir ✓','Concluída','okline']:['Reabrir','Em andamento','sec'];
     const x=document.createElement('button');x.type='button';x.className='btn '+st[2];x.textContent=st[0];x.addEventListener('click',async()=>{t.status=st[1];t.concluida_em=st[1]==='Concluída'?nowIso():'';t.obs=(t.obs?t.obs+'\n':'')+fmtD(nowIso())+' '+st[1];t.exportado_em='';await put('tarefas',t);await carregar();render();toast('Tarefa: '+st[1]);});
-    b.append(x,waLink(resumoWhats(t)));c.appendChild(b);el.appendChild(c);}
+    b.append(x,btnCompartilhar(t.titulo,resumoWhats(t),n?midiasDe(n):[]));c.appendChild(b);el.appendChild(c);}
 }
 
 /* ---------- COMPROMISSOS ---------- */
@@ -259,7 +269,7 @@ function renderAgenda(){
     const c=document.createElement('div');c.className='card';c.style.opacity=a.status==='Realizado'?'.7':'1';
     const row=document.createElement('div');row.style.cssText='display:flex;gap:12px';row.innerHTML='<div class="day"><span>'+(d?DIAS[d.getDay()]:'—')+'</span><b>'+(d?pad(d.getDate()):'?')+'</b></div><div class="col"><div class="title">'+esc(a.titulo)+'</div><div class="meta">'+(d?pad(d.getHours())+':'+pad(d.getMinutes())+' · ':'')+esc(a.local||'')+(a.fornecedor?' · '+esc(a.fornecedor):'')+' · '+esc(a.status)+'</div></div>';c.appendChild(row);
     const b=document.createElement('div');b.className='btns';const x=document.createElement('button');x.type='button';x.className='btn '+(a.status==='Realizado'?'sec':'okline');x.textContent=a.status==='Realizado'?'Reabrir':'Realizado ✓';x.addEventListener('click',async()=>{a.status=a.status==='Realizado'?'Marcado':'Realizado';a.obs=(a.obs?a.obs+'\n':'')+fmtD(nowIso())+' '+a.status;a.exportado_em='';await put('agenda',a);await carregar();render();});
-    b.append(x,waLink('*NEO_Condomínio — Compromisso*\n'+a.titulo+'\n'+(d?'Quando: '+fmtD(a.inicio):'Data a confirmar')+(a.local?'\nLocal: '+a.local:'')+(a.fornecedor?'\nFornecedor: '+a.fornecedor:'')));c.appendChild(b);el.appendChild(c);}
+    const na=notas.find(x=>x.id===a.nota_id);b.append(x,btnCompartilhar(a.titulo,'*NEO_Condomínio — Compromisso*\n'+a.titulo+'\n'+(d?'Quando: '+fmtD(a.inicio):'Data a confirmar')+(a.local?'\nLocal: '+a.local:'')+(a.fornecedor?'\nFornecedor: '+a.fornecedor:''),na?midiasDe(na):[]));c.appendChild(b);el.appendChild(c);}
 }
 
 /* ---------- RETAGUARDA ---------- */
