@@ -97,8 +97,8 @@ nav.bottom button[aria-current=page]{background:var(--brand-soft);color:var(--br
 .overlay .bar{flex:none;display:flex;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:#000}
 .overlay .bar button{flex:1;min-height:52px;border:0;border-radius:12px;font-weight:700;font-size:16px}
 .overlay .rec{flex:none;color:#fff;font-weight:700;text-align:center;padding:8px;font-size:14px}
-.overlay .top{flex:none;display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;background:#000}
-.overlay .top button{min-height:40px;padding:0 12px;border:1px solid #666;border-radius:10px;background:#222;color:#fff;font-weight:600;font-size:13px}
+.overlay .top{flex:none;flex-wrap:wrap;display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;background:#000}
+.overlay .top button{min-height:40px;padding:0 10px;border:1px solid #666;border-radius:10px;background:#222;color:#fff;font-weight:600;font-size:13px}
 .overlay .top button[aria-pressed=true]{background:#F2B36A;color:#000;border-color:#F2B36A}
 .overlay .top label{flex:1;display:flex;align-items:center;gap:6px;color:#fff;font-size:12px;font-weight:600}
 .overlay .top input[type=range]{flex:1;min-width:0}
@@ -111,7 +111,7 @@ input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:
 </head>
 <body>
 <header class="hdr" id="hdr">
-  <div class="eyebrow" id="eyebrow">NEO_Condomínio · v0.6</div>
+  <div class="eyebrow" id="eyebrow">NEO_Condomínio · v0.7</div>
   <div class="hrow"><h1 id="vTitle">Capturar</h1><span class="badge" id="vBadge" hidden></span></div>
   <div class="sub" id="vSub">Viu, pegou o celular, capturou. O resto é depois.</div>
   <div class="diag" id="diag" hidden></div>
@@ -123,8 +123,7 @@ input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:
     <div class="field"><label for="cTitulo">Título da nota (opcional)</label>
       <div class="box"><input id="cTitulo" type="text" placeholder="Fale ou digite…" autocomplete="off"><button type="button" class="mic" data-mic="cTitulo" aria-label="Falar o título"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div></div>
     <div class="grid2">
-      <button type="button" class="big" id="bCam"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Câmera</span></button>
-      <button type="button" class="big" id="bVid"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3z"/></svg><span>Filmadora</span></button>
+      <button type="button" class="big" id="bCam"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Câmera · Foto e Vídeo</span></button>
       <label class="big line" id="bArq"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>Arquivos</span><input type="file" id="fArq" accept="image/*,video/*,audio/*,.opus,.ogg,.m4a,.aac,.mp3,.mp4" multiple aria-label="Escolher arquivos"></label>
     </div>
     <div class="field"><label for="cTexto">Texto (opcional)</label>
@@ -181,6 +180,8 @@ input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:
 
 <div class="overlay" id="ov" hidden>
   <div class="top">
+    <button type="button" id="ovModoFoto" aria-pressed="true">Foto</button>
+    <button type="button" id="ovModoVid" aria-pressed="false">Vídeo</button>
     <button type="button" id="ovTorch" aria-pressed="false" hidden>Lanterna</button>
     <label id="ovZoomWrap" hidden><span>Zoom</span><input type="range" id="ovZoom" min="1" max="1" step="0.1" value="1" aria-label="Zoom"></label>
     <button type="button" id="ovRecibo" aria-pressed="false">Recibo</button>

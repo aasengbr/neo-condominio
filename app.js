@@ -118,7 +118,7 @@ $('#cSalvarTexto').addEventListener('click',async()=>{if(!$('#cTitulo').value.tr
 // Câmera: visor próprio (getUserMedia); se recusar, seletor do celular
 let stream=null,mediaRec=null,recChunks=[],recTimer=null,ovMode='',fotoBlob=null,reciboOn=false,track=null;
 async function abrirVisor(modo){
-  ovMode=modo;const ov=$('#ov'),vd=$('#ovVideo');fotoBlob=null;
+  ovMode=modo;const ov=$('#ov'),vd=$('#ovVideo');fotoBlob=null;$('#ovModoFoto').setAttribute('aria-pressed',String(modo==='foto'));$('#ovModoVid').setAttribute('aria-pressed',String(modo==='video'));
   try{stream=await navigator.mediaDevices.getUserMedia(modo==='foto'?{video:{facingMode:{ideal:'environment'},width:{ideal:1920}},audio:false}:{video:{facingMode:{ideal:'environment'}},audio:true});}
   catch(err){diag('');return false;}
   track=stream.getVideoTracks()[0];vd.srcObject=stream;vd.muted=true;vd.hidden=false;$('#ovPrev').hidden=true;$('#ovBarLive').hidden=false;$('#ovBarPrev').hidden=true;ov.hidden=false;
@@ -146,7 +146,8 @@ $('#ovShot').addEventListener('click',async()=>{
 $('#ovRetry').addEventListener('click',()=>{const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);img.hidden=true;$('#ovVideo').hidden=false;$('#ovBarPrev').hidden=true;$('#ovBarLive').hidden=false;$('#ovRec').textContent='Enquadre e toque em Tirar';fotoBlob=null;});
 $('#ovOk').addEventListener('click',async()=>{const blob=fotoBlob;if(!blob)return;const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'foto','foto_'+Date.now()+'.jpg');toast('Foto gravada ✓'+(n.gps?' · GPS ok':''));render();});
 $('#bCam').addEventListener('click',async()=>{if(!(await abrirVisor('foto')))$('#fCamFallback').click();});
-$('#bVid').addEventListener('click',async()=>{if(!(await abrirVisor('video')))$('#fVidFallback').click();});
+async function trocarModo(m){if(mediaRec||m===ovMode)return;fecharVisor();if(!(await abrirVisor(m)))(m==='foto'?$('#fCamFallback'):$('#fVidFallback')).click();}
+$('#ovModoFoto').addEventListener('click',()=>trocarModo('foto'));$('#ovModoVid').addEventListener('click',()=>trocarModo('video'));
 // Arquivos e reservas (seletor do celular)
 async function arquivos(files,notaFixa){
   if(!files||!files.length)return;let n=notaFixa||await notaParaCaptura();
