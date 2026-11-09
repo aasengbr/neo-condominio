@@ -66,13 +66,32 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recAtivo=null;
 $$('.mic').forEach(b=>b.addEventListener('click',()=>ditar(b.dataset.mic,b)));
 function ditar(campoId,btn){
-  if(!SR){toast('Transcrição de voz não disponível neste navegador. Use o Chrome.');return;}
+  const guardar=campoId==='cTexto'; // microfone do Texto da tela 1: dita E guarda o áudio como evidência
   if(recAtivo){recAtivo.stop();return;}
+  if(!SR&&!guardar){toast('Transcrição de voz não disponível neste navegador. Use o Chrome.');return;}
   const campo=document.getElementById(campoId);const base=campo.value?campo.value.replace(/\s+$/,'')+' ':'';
-  const r=new SR();r.lang='pt-BR';r.continuous=true;r.interimResults=true;recAtivo=r;btn.classList.add('on');
-  r.onresult=e=>{let fin='',tmp='';for(let i=0;i<e.results.length;i++){const s=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=s+' ';else tmp+=s;}campo.value=(base+fin+tmp).replace(/^\s/,'');campo.dispatchEvent(new Event('input'));};
-  r.onend=()=>{recAtivo=null;btn.classList.remove('on');};r.onerror=e=>{recAtivo=null;btn.classList.remove('on');if(e.error!=='no-speech'&&e.error!=='aborted')toast('Voz: '+e.error);};
-  try{r.start();}catch(err){recAtivo=null;btn.classList.remove('on');toast('Não consegui iniciar o microfone.');}
+  let aud=null;
+  const fim=()=>{recAtivo=null;btn.classList.remove('on');if(aud)aud.stop();};
+  if(SR){
+    const r=new SR();r.lang='pt-BR';r.continuous=true;r.interimResults=true;recAtivo=r;btn.classList.add('on');
+    r.onresult=e=>{let fin='',tmp='';for(let i=0;i<e.results.length;i++){const s=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=s+' ';else tmp+=s;}campo.value=(base+fin+tmp).replace(/^\s/,'');campo.dispatchEvent(new Event('input'));};
+    r.onend=fim;r.onerror=e=>{fim();if(e.error!=='no-speech'&&e.error!=='aborted')toast('Voz: '+e.error);};
+    try{r.start();}catch(err){fim();toast('Não consegui iniciar o microfone.');return;}
+  }else{recAtivo={stop:()=>fim()};btn.classList.add('on');}
+  if(guardar)iniciarAudio(campo).then(a=>{aud=a;if(!recAtivo&&aud)aud.stop();});
+}
+// grava o áudio junto com o ditado; se o aparelho não deixar abrir o microfone duas vezes, só dita (sem áudio)
+async function iniciarAudio(campo){
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
+    const ch=[];const rec=new MediaRecorder(st,mime?{mimeType:mime}:undefined);const ini=Date.now();
+    rec.ondataavailable=e=>{if(e.data.size)ch.push(e.data);};
+    rec.onstop=async()=>{st.getTracks().forEach(t=>t.stop());if(!ch.length)return;const blob=new Blob(ch,{type:rec.mimeType||mime||'audio/webm'});const dur=Math.round((Date.now()-ini)/1000);if(dur<1)return;
+      const n=await notaParaCaptura();const txt=campo.value.trim();n.texto=txt;await put('notas',n);
+      await gravarMidia(n,blob,'audio','voz_'+Date.now()+(/mp4/.test(blob.type)?'.m4a':'.webm'),{duracao_s:dur,transcricao:txt});toast('Áudio guardado ✓ ('+dur+' s)');render();};
+    rec.start(1000);return rec;
+  }catch(e){toast('Áudio não guardado (só texto).');return null;}
 }
 
 /* ---------- CAPTURAR ---------- */
@@ -128,19 +147,6 @@ $('#ovRetry').addEventListener('click',()=>{const img=$('#ovPrev');if(img.src)UR
 $('#ovOk').addEventListener('click',async()=>{const blob=fotoBlob;if(!blob)return;const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'foto','foto_'+Date.now()+'.jpg');toast('Foto gravada ✓'+(n.gps?' · GPS ok':''));render();});
 $('#bCam').addEventListener('click',async()=>{if(!(await abrirVisor('foto')))$('#fCamFallback').click();});
 $('#bVid').addEventListener('click',async()=>{if(!(await abrirVisor('video')))$('#fVidFallback').click();});
-// Voz: grava áudio + transcreve ao vivo no Texto
-let vozRec=null,vozSR=null,vozIni=0;
-$('#bVoz').addEventListener('click',async()=>{
-  if(vozRec){vozRec.stop();return;}
-  let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true});}catch(err){$('#fVozFallback').click();return;}
-  const mime=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
-  recChunks=[];vozRec=new MediaRecorder(st,mime?{mimeType:mime}:undefined);vozIni=Date.now();
-  vozRec.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data);};
-  vozRec.onstop=async()=>{st.getTracks().forEach(t=>t.stop());const blob=new Blob(recChunks,{type:vozRec.mimeType||mime||'audio/webm'});const dur=Math.round((Date.now()-vozIni)/1000);vozRec=null;$('#bVozLbl').textContent='Voz';$('#bVoz').classList.remove('on');if(vozSR){try{vozSR.stop();}catch(_){}}
-    const n=await notaParaCaptura();const txt=$('#cTexto').value.trim();n.texto=txt;await put('notas',n);await gravarMidia(n,blob,'audio','voz_'+Date.now()+(/mp4/.test(blob.type)?'.m4a':'.webm'),{duracao_s:dur,transcricao:txt});render();};
-  vozRec.start(1000);$('#bVozLbl').textContent='Parar';$('#bVoz').classList.add('on');toast('Gravando… toque de novo para parar.');
-  if(SR){const campo=$('#cTexto');const base=campo.value?campo.value.replace(/\s+$/,'')+' ':'';vozSR=new SR();vozSR.lang='pt-BR';vozSR.continuous=true;vozSR.interimResults=true;vozSR.onresult=e=>{let fin='',tmp='';for(let i=0;i<e.results.length;i++){const s=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=s+' ';else tmp+=s;}campo.value=base+fin+tmp;};vozSR.onerror=()=>{};try{vozSR.start();}catch(_){}}
-});
 // Arquivos e reservas (seletor do celular)
 async function arquivos(files,notaFixa){
   if(!files||!files.length)return;let n=notaFixa||await notaParaCaptura();
@@ -151,7 +157,7 @@ async function arquivos(files,notaFixa){
 }
 function paraJpeg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(u);cv.toBlob(b=>b?res(b):rej(new Error('conv')),'image/jpeg',0.85);};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'));};im.src=u;});}
 $('#fArq').addEventListener('change',e=>{arquivos(Array.from(e.target.files));e.target.value='';});
-['fCamFallback','fVidFallback','fVozFallback'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{arquivos(Array.from(e.target.files));e.target.value='';}));
+['fCamFallback','fVidFallback'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{arquivos(Array.from(e.target.files));e.target.value='';}));
 
 /* ---------- NOTAS (lista) ---------- */
 function thumbEl(m,small){const d=document.createElement('div');d.className='thumb';if(!m){d.textContent='texto';return d;}
