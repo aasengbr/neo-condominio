@@ -146,6 +146,7 @@ $('#ovShot').addEventListener('click',async()=>{
 $('#ovRetry').addEventListener('click',()=>{const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);img.hidden=true;$('#ovVideo').hidden=false;$('#ovBarPrev').hidden=true;$('#ovBarLive').hidden=false;$('#ovRec').textContent='Enquadre e toque em Tirar';fotoBlob=null;});
 $('#ovOk').addEventListener('click',async()=>{const blob=fotoBlob;if(!blob)return;const img=$('#ovPrev');if(img.src)URL.revokeObjectURL(img.src);fecharVisor();const n=await notaParaCaptura();await gravarMidia(n,blob,'foto','foto_'+Date.now()+'.jpg');toast('Foto gravada ✓'+(n.gps?' · GPS ok':''));render();});
 $('#bCam').addEventListener('click',async()=>{if(!(await abrirVisor('foto')))$('#fCamFallback').click();});
+$('#bVid').addEventListener('click',async()=>{if(!(await abrirVisor('video')))$('#fVidFallback').click();});
 async function trocarModo(m){if(mediaRec||m===ovMode)return;fecharVisor();if(!(await abrirVisor(m)))(m==='foto'?$('#fCamFallback'):$('#fVidFallback')).click();}
 $('#ovModoFoto').addEventListener('click',()=>trocarModo('foto'));$('#ovModoVid').addEventListener('click',()=>trocarModo('video'));
 // Arquivos e reservas (seletor do celular)
