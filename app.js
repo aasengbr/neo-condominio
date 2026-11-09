@@ -98,7 +98,7 @@ async function iniciarAudio(campo){
 async function notaParaCaptura(){
   // R3: até 2 min sem título novo → mesma nota
   const tit=$('#cTitulo').value.trim(), txt=$('#cTexto').value.trim();
-  if(notaAbertaId&&Date.now()-notaAbertaEm<120000){const n=await get('notas',notaAbertaId);if(n){if(tit&&tit!==n.titulo){/* título novo = nota nova */}else{n.texto=txt||n.texto;n.titulo=n.titulo||tit;await put('notas',n);notaAbertaEm=Date.now();return n;}}}
+  if(notaAbertaId&&Date.now()-notaAbertaEm<120000){const n=await get('notas',notaAbertaId);if(n){if(tit&&n.titulo&&tit!==n.titulo){/* a nota aberta já tem OUTRO título → nota nova */}else{n.texto=txt||n.texto;n.titulo=n.titulo||tit;await put('notas',n);notaAbertaEm=Date.now();return n;}}}
   const n={id:mkId('N'),recebido_em:nowIso(),origem:'App',remetente:'Síndico',tipo:'misto',titulo:tit,texto:txt,midia:'',gps:await pegarGPS(),valor:0,fornecedor:'',rota:'',categoria:'',subcategoria:'',status:'Capturada',destino_id:'',obs:'',exportado_em:''};
   await put('notas',n);notaAbertaId=n.id;notaAbertaEm=Date.now();return n;
 }
