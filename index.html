@@ -92,16 +92,19 @@ nav.bottom button{min-height:44px;border-radius:8px;border:0;background:transpar
 nav.bottom button[aria-current=page]{background:var(--brand-soft);color:var(--brand)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--dark);color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;z-index:30;max-width:90vw;text-align:center}
 .overlay{position:fixed;inset:0;height:100vh;height:100dvh;background:#000;z-index:40;display:flex;flex-direction:column;overflow:hidden}
-.overlay video{flex:1 1 0;min-height:0;width:100%;object-fit:cover;background:#000}
+.overlay .stage{flex:1 1 0;min-height:0;position:relative;background:#000;overflow:hidden}
+.overlay .stage video,.overlay .stage img{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.overlay .stage video{object-fit:cover}
 .overlay .bar{flex:none;display:flex;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:#000}
 .overlay .bar button{flex:1;min-height:52px;border:0;border-radius:12px;font-weight:700;font-size:16px}
-.overlay .rec{flex:none;color:#fff;font-weight:700;text-align:center;padding:8px;font-size:14px}
-.overlay .top{flex:none;flex-wrap:wrap;display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;background:#000}
-.overlay .top button{min-height:40px;padding:0 10px;border:1px solid #666;border-radius:10px;background:#222;color:#fff;font-weight:600;font-size:13px}
+.overlay .rec{position:absolute;top:8px;left:50%;transform:translateX(-50%);max-width:92%;color:#fff;font-weight:700;text-align:center;padding:5px 12px;font-size:13px;background:rgba(0,0,0,.55);border-radius:14px;z-index:2;white-space:nowrap}
+.overlay .top{flex:none;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;background:#000}
+.overlay .top .sp{flex:1}
+.overlay .top button{min-height:40px;padding:0 11px;border:1px solid #666;border-radius:10px;background:#222;color:#fff;font-weight:600;font-size:13px;white-space:nowrap}
 .overlay .top button[aria-pressed=true]{background:#F2B36A;color:#000;border-color:#F2B36A}
-.overlay .top label{flex:1;display:flex;align-items:center;gap:6px;color:#fff;font-size:12px;font-weight:600}
-.overlay .top input[type=range]{flex:1;min-width:0}
-.overlay img{flex:1 1 0;min-height:0;width:100%;object-fit:contain;background:#000}
+.overlay .stage .zoomw{position:absolute;left:14px;right:14px;bottom:10px;display:flex;align-items:center;gap:8px;color:#fff;font-size:12px;font-weight:700;background:rgba(0,0,0,.55);border-radius:14px;padding:6px 12px;z-index:2}
+.overlay .stage input[type=range]{flex:1;min-width:0}
+.overlay .stage img{object-fit:contain}
 .overlay video.recibo{filter:grayscale(1) contrast(1.6) brightness(1.1)}
 .status{font-size:12px;color:var(--muted);text-align:center}
 .diag{font-size:11px;color:var(--alta);text-align:left}
@@ -110,7 +113,7 @@ input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:
 </head>
 <body>
 <header class="hdr" id="hdr">
-  <div class="eyebrow" id="eyebrow">NEO_Condomínio · v0.8</div>
+  <div class="eyebrow" id="eyebrow">NEO_Condomínio · v0.9</div>
   <div class="hrow"><h1 id="vTitle">Capturar</h1><span class="badge" id="vBadge" hidden></span></div>
   <div class="sub" id="vSub">Viu, pegou o celular, capturou. O resto é depois.</div>
   <div class="diag" id="diag" hidden></div>
@@ -181,13 +184,16 @@ input.plain{width:100%;border:1px solid var(--line2);border-radius:10px;padding:
   <div class="top">
     <button type="button" id="ovModoFoto" aria-pressed="true">Foto</button>
     <button type="button" id="ovModoVid" aria-pressed="false">Vídeo</button>
+    <span class="sp"></span>
     <button type="button" id="ovTorch" aria-pressed="false" hidden>Lanterna</button>
-    <label id="ovZoomWrap" hidden><span>Zoom</span><input type="range" id="ovZoom" min="1" max="1" step="0.1" value="1" aria-label="Zoom"></label>
     <button type="button" id="ovRecibo" aria-pressed="false">Recibo</button>
   </div>
-  <div class="rec" id="ovRec"></div>
-  <video id="ovVideo" autoplay playsinline muted></video>
-  <img id="ovPrev" alt="Foto tirada" hidden>
+  <div class="stage">
+    <video id="ovVideo" autoplay playsinline muted></video>
+    <img id="ovPrev" alt="Foto tirada" hidden>
+    <div class="rec" id="ovRec"></div>
+    <label class="zoomw" id="ovZoomWrap" hidden><span>Zoom</span><input type="range" id="ovZoom" min="1" max="1" step="0.1" value="1" aria-label="Zoom"></label>
+  </div>
   <div class="bar" id="ovBarLive"><button type="button" id="ovCancel" style="background:#333;color:#fff">Cancelar</button><button type="button" id="ovShot" style="background:#fff;color:#000">Tirar</button></div>
   <div class="bar" id="ovBarPrev" hidden><button type="button" id="ovRetry" style="background:#333;color:#fff">Repetir</button><button type="button" id="ovOk" style="background:#0F766E;color:#fff">OK · Gravar</button></div>
 </div>
